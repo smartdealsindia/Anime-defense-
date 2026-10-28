@@ -3,608 +3,521 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Anime Defense: Shadow War</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Anime Guardians - Tower Defense</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#101326;color:#fff;font-family:Arial,sans-serif;text-align:center}
-header{padding:12px 8px;background:#1b2040}
-h1{font-size:23px;margin:2px;color:#ffd86b}
-#stats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;padding:10px;font-weight:bold}
-.stat{background:#262c50;border-radius:9px;padding:8px 11px}
-#gameWrap{width:100%;max-width:950px;margin:auto;padding:0 6px}
-canvas{display:block;width:100%;height:auto;border:2px solid #6574b9;border-radius:10px;background:#18213a;touch-action:manipulation}
-#controls{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:12px 4px}
-button{border:0;border-radius:9px;padding:12px 15px;font-size:14px;font-weight:bold;color:white;background:#5758d9;cursor:pointer;touch-action:manipulation}
+body{margin:0;background:#080e20;color:#eef5ff;font-family:Arial,sans-serif}
+button{font:inherit;cursor:pointer;border:1px solid #425c93;border-radius:9px;color:#fff;background:#19294c;padding:10px}
 button:active{transform:scale(.97)}
-#buildBtn{background:#d17b25}
-#restartBtn{background:#bd3d65}
-#message{min-height:25px;color:#ffe69b;font-size:14px;padding:0 8px 12px}
-small{display:block;color:#c6c9e8;padding:0 12px 15px}
+.top{padding:12px;background:linear-gradient(120deg,#111c40,#262354,#102b48);border-bottom:2px solid #3d9cff}
+.brand{font-size:22px;font-weight:900;color:#78e7ff;letter-spacing:1px}
+.sub{font-size:12px;color:#b7c9f8;margin-top:4px}
+.stats{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.stat{flex:1;min-width:70px;text-align:center;padding:9px 5px;border-radius:8px;background:#101a35;border:1px solid #304774;font-size:12px}
+.stat strong{display:block;font-size:17px;color:#fff;margin-top:3px}
+main{max-width:1100px;margin:auto;padding:8px}
+#arena{position:relative;border:2px solid #3b8ee5;border-radius:12px;overflow:hidden;background:#10223a;box-shadow:0 0 22px #1479b344}
+canvas{display:block;width:100%;height:auto;touch-action:manipulation}
+#toast{position:absolute;top:8px;left:50%;transform:translateX(-50%);max-width:90%;background:#10182be8;border:1px solid #64cfff;border-radius:9px;padding:8px 12px;font-size:12px;text-align:center;pointer-events:none}
+.toolbar{display:flex;gap:7px;flex-wrap:wrap;margin:9px 0}
+.toolbar button{flex:1;min-width:105px;font-size:13px}
+.primary{background:linear-gradient(120deg,#087bdc,#594de0);border-color:#71c9ff;font-weight:bold}
+.section-title{font-weight:900;color:#75e7ff;margin:14px 2px 8px;font-size:14px;letter-spacing:1px}
+.units{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+.unit{min-width:0;padding:8px 3px;background:linear-gradient(160deg,#1c2b50,#101a31);border:1px solid #38517e;border-radius:10px;text-align:center}
+.unit.selected{border:2px solid #6af2ff;box-shadow:0 0 12px #4acbff44}
+.unit .emoji{font-size:27px;display:block;margin:3px}
+.unit b{font-size:11px;display:block}
+.unit small{display:block;color:#c1ccef;margin:5px 0;font-size:10px}
+.unit button{width:100%;padding:7px 1px;font-size:11px;background:#17436b}
+.items{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.item{background:#19213c;border:1px solid #435a8b;padding:10px 3px;text-align:center;font-size:12px}
+.item span{font-size:25px;display:block;margin-bottom:5px}
+.item small{color:#b8c9e8}
+.footer{color:#94a8d3;font-size:11px;line-height:1.6;padding:14px 2px}
+@media(max-width:520px){
+ .brand{font-size:19px}
+ .units{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .unit .emoji{font-size:24px}
+ .stat strong{font-size:15px}
+ .toolbar button{font-size:12px;padding:10px 4px}
+}
 </style>
 </head>
 <body>
-<header>
-<h1>⚔️ Anime Defense: Shadow War</h1>
-<div>Defend the gate. Survive every wave!</div>
+<header class="top">
+ <div class="brand">⚔ ANIME GUARDIANS</div>
+ <div class="sub">SHADOW WAR · DEFEND THE CRYSTAL GATE</div>
+ <div class="stats">
+  <div class="stat">❤️ LIFE<strong id="life">15</strong></div>
+  <div class="stat">🪙 GOLD<strong id="gold">300</strong></div>
+  <div class="stat">🌟 LEVEL<strong id="level">1</strong></div>
+  <div class="stat">👹 WAVE<strong id="wave">1/5</strong></div>
+ </div>
 </header>
 
-<div id="stats">
-<div class="stat">❤️ Lives: <span id="lives">10</span></div>
-<div class="stat">🪙 Coins: <span id="coins">100</span></div>
-<div class="stat">🌟 Level: <span id="level">1</span></div>
-<div class="stat">👾 Wave: <span id="wave">1</span>/3</div>
-</div>
+<main>
+ <div id="arena">
+  <canvas id="game" width="900" height="530"></canvas>
+  <div id="toast">Choose a unit below, then tap the battlefield to deploy it.</div>
+ </div>
 
-<div id="gameWrap">
-<canvas id="game" width="900" height="570"></canvas>
-</div>
+ <div class="toolbar">
+  <button class="primary" id="start">▶ START WAVE</button>
+  <button id="upgrade">⬆ UPGRADE SELECTED</button>
+  <button id="save">💾 SAVE GAME</button>
+  <button id="reset">↻ NEW GAME</button>
+ </div>
 
-<div id="controls">
-<button id="heroBtn">🦸 Move Hero</button>
-<button id="buildBtn">🏹 Build Tower (40)</button>
-<button id="startBtn">▶ Start / Next Wave</button>
-<button id="restartBtn">↻ Restart Run</button>
-</div>
-<div id="message">Tap the field to move your hero. Build towers away from the road.</div>
-<small>Progress is saved automatically on this device. Clear 3 waves to advance to the next level.</small>
+ <div class="section-title">✦ DEPLOY YOUR GUARDIANS</div>
+ <div class="units" id="units"></div>
+
+ <div class="section-title">🔥 BATTLE ITEMS</div>
+ <div class="items">
+  <button class="item" id="fire"><span>🔥</span>Fire Bomb<br><small>Damage all enemies · 50 gold</small></button>
+  <button class="item" id="ice"><span>❄️</span>Ice Blast<br><small>Freeze enemies · 40 gold</small></button>
+  <button class="item" id="heal"><span>💚</span>Healing Potion<br><small>Restore 5 lives · 60 gold</small></button>
+ </div>
+
+ <div class="footer">
+  <b>How to play:</b> Select a guardian, then tap an open area beside the road.
+  Guardians automatically attack enemies. Tap a deployed guardian to select it for upgrades.
+  Enemies reaching the gate cost one life. Clear five waves to unlock the next battlefield.
+  Your progress is saved in this browser.
+ </div>
+</main>
 
 <script>
 "use strict";
-
 (() => {
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+const $=id=>document.getElementById(id);
+const W=900,H=530,KEY="animeGuardiansSaveV1";
 
-if (!ctx) {
-  document.getElementById("message").textContent =
-    "Your browser could not start the game canvas. Please open this page in Chrome.";
-  return;
-}
+const types={
+ sword:{name:"Swordsman",emoji:"⚔️",cost:45,damage:22,range:72,rate:.55,color:"#53dcff",kind:"melee",desc:"Fast melee"},
+ archer:{name:"Archer",emoji:"🏹",cost:55,damage:19,range:165,rate:.72,color:"#77f5ad",kind:"range",desc:"Fast arrows"},
+ mage:{name:"Mage",emoji:"🔮",cost:90,damage:40,range:155,rate:1.15,color:"#ce91ff",kind:"magic",desc:"Magic burst"},
+ tank:{name:"Tank",emoji:"🛡️",cost:110,damage:34,range:90,rate:.9,color:"#ffc85b",kind:"tank",desc:"Armored guard"},
+ cannon:{name:"Cannon",emoji:"💣",cost:125,damage:55,range:145,rate:1.65,color:"#ff846d",kind:"splash",desc:"Area damage"}
+};
 
-const W = canvas.width, H = canvas.height;
-const $ = id => document.getElementById(id);
-const SAVE_KEY = "animeShadowWar_fixed_v1";
-
-const path = [
-  {x:-20,y:105},{x:150,y:105},{x:150,y:225},
-  {x:335,y:225},{x:335,y:110},{x:530,y:110},
-  {x:530,y:355},{x:710,y:355},{x:710,y:475},{x:880,y:475}
+const path=[
+ {x:-10,y:110},{x:145,y:110},{x:145,y:235},
+ {x:330,y:235},{x:330,y:100},{x:525,y:100},
+ {x:525,y:335},{x:700,y:335},{x:700,y:455},{x:890,y:455}
 ];
 
-const themes = [
-  {name:"Mystic Forest",bg:"#183b3b",road:"#b59a6a",accent:"#60e6a3"},
-  {name:"Flame Valley",bg:"#49252e",road:"#b58a76",accent:"#ff9065"},
-  {name:"Moon Temple",bg:"#25234e",road:"#8d88bd",accent:"#c6a7ff"},
-  {name:"Frozen Realm",bg:"#174052",road:"#9bbdc9",accent:"#8df0ff"},
-  {name:"Shadow Castle",bg:"#28233b",road:"#93879e",accent:"#ffcf74"}
+const themes=[
+ {name:"Sakura Forest",bg:"#153b43",road:"#b6a47d",glow:"#ff9bd5"},
+ {name:"Volcanic Realm",bg:"#48232d",road:"#b18a72",glow:"#ff795b"},
+ {name:"Frozen Shrine",bg:"#17384e",road:"#a3c5d5",glow:"#8ceaff"},
+ {name:"Moonlit Castle",bg:"#292342",road:"#9385ac",glow:"#d1a2ff"},
+ {name:"Demon Fortress",bg:"#351b35",road:"#9b7d89",glow:"#ff656f"}
 ];
 
-let level = 1, wave = 1, coins = 100, lives = 10;
-let enemies = [], towers = [], shots = [], particles = [];
-let hero = {x:75,y:390,hp:100,maxHp:100,cooldown:0};
-let running = false, gameOver = false, buildMode = false;
-let spawnLeft = 0, spawnTimer = 0, waveWait = 0;
-let kills = 0, lastTime = 0, heroMoveMode = false;
-let messageTimer = 0;
+let level=1,wave=1,gold=300,lives=15;
+let towers=[],enemies=[],shots=[],particles=[];
+let selectedType="archer",selectedTower=null;
+let running=false,gameOver=false,buildMode=true;
+let spawnLeft=0,spawnClock=0,toastTime=0,last=0;
+let enemyId=1;
 
-function loadProgress() {
-  try {
-    const data = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
-    if (data) {
-      level = Math.max(1, Math.min(999, Number(data.level) || 1));
-      coins = Math.max(0, Number(data.coins) || 100);
-      kills = Math.max(0, Number(data.kills) || 0);
-    }
-  } catch (e) {
-    // If storage is unavailable, the game still runs normally.
+function say(s){
+ $("toast").textContent=s;
+ toastTime=3;
+}
+
+function updateUI(){
+ $("life").textContent=lives;
+ $("gold").textContent=gold;
+ $("level").textContent=level;
+ $("wave").textContent=wave+"/5";
+}
+
+function save(){
+ try{
+  localStorage.setItem(KEY,JSON.stringify({
+   level,wave,gold,lives,
+   towers:towers.map(t=>({x:t.x,y:t.y,type:t.type,lv:t.lv}))
+  }));
+ }catch(e){}
+}
+
+function load(){
+ try{
+  const d=JSON.parse(localStorage.getItem(KEY)||"null");
+  if(!d)return;
+  level=Math.max(1,Number(d.level)||1);
+  wave=Math.max(1,Math.min(5,Number(d.wave)||1));
+  gold=Math.max(0,Number(d.gold)||300);
+  lives=Math.max(1,Number(d.lives)||15);
+  if(Array.isArray(d.towers)){
+   towers=d.towers.filter(t=>types[t.type]&&Number.isFinite(t.x)&&Number.isFinite(t.y))
+    .map(t=>makeTower(t.type,t.x,t.y,t.lv||1));
   }
+ }catch(e){}
 }
 
-function saveProgress() {
-  try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify({level, coins, kills}));
-  } catch (e) {}
+function makeTower(type,x,y,lv=1){
+ const base=types[type];
+ return {type,x,y,lv,damage:base.damage+(lv-1)*base.damage*.5,
+  range:base.range+(lv-1)*12,rate:base.rate,
+  cooldown:Math.random()*.3,hp:type==="tank"?260:100};
 }
 
-function say(text) {
-  $("message").textContent = text;
-  messageTimer = 3;
-}
-
-function updateUI() {
-  $("lives").textContent = lives;
-  $("coins").textContent = coins;
-  $("level").textContent = level;
-  $("wave").textContent = wave;
-}
-
-function distance(a,b) {
-  return Math.hypot(a.x-b.x,a.y-b.y);
-}
-
-function pointOnPath(p) {
-  for (let i=0;i<path.length-1;i++) {
-    const a=path[i], b=path[i+1];
-    const dx=b.x-a.x, dy=b.y-a.y;
-    const len2=dx*dx+dy*dy;
-    const t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/(len2||1)));
-    const q={x:a.x+t*dx,y:a.y+t*dy};
-    if (distance(p,q)<43) return true;
-  }
-  return false;
-}
-
-function startWave() {
-  if (gameOver) {
-    say("Run over! Press Restart Run to play again.");
-    return;
-  }
-  if (running) {
-    say("The current wave is already running!");
-    return;
-  }
-  running = true;
-  spawnLeft = 5 + level*2 + wave*2;
-  spawnTimer = 0.2;
-  waveWait = 0;
-  say("Wave "+wave+" begins! Defend the gate!");
-  updateUI();
-}
-
-function spawnEnemy() {
-  const boss = spawnLeft % 8 === 0 && level >= 2;
-  const hp = boss ? 180 + level*35 : 35 + level*11 + wave*5;
-  enemies.push({
-    x:path[0].x, y:path[0].y, segment:1,
-    hp:hp, maxHp:hp,
-    speed:boss ? 25 : 39 + level*1.5,
-    reward:boss ? 30 : 8,
-    boss:boss, radius:boss ? 19 : 13
+function buildCards(){
+ const el=$("units");
+ el.innerHTML="";
+ Object.keys(types).forEach(type=>{
+  const t=types[type];
+  const b=document.createElement("div");
+  b.className="unit"+(type===selectedType?" selected":"");
+  b.id="card-"+type;
+  b.innerHTML='<span class="emoji">'+t.emoji+'</span><b>'+t.name+'</b>'+
+   '<small>'+t.desc+'</small><small>🪙 '+t.cost+'</small>'+
+   '<button type="button">SELECT</button>';
+  b.querySelector("button").addEventListener("click",()=>{
+   selectedType=type;selectedTower=null;buildMode=true;buildCards();
+   say("Selected "+t.name+". Tap an empty area beside the road.");
   });
-  spawnLeft--;
+  el.appendChild(b);
+ });
 }
 
-function nearestEnemy(x,y,range) {
-  let best=null, bestDist=Infinity;
-  for (const e of enemies) {
-    const d=Math.hypot(e.x-x,e.y-y);
-    if (e.hp>0 && d<range && d<bestDist) {
-      best=e; bestDist=d;
-    }
-  }
-  return best;
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+
+function nearRoad(p){
+ for(let i=0;i<path.length-1;i++){
+  const a=path[i],b=path[i+1],dx=b.x-a.x,dy=b.y-a.y;
+  const len=dx*dx+dy*dy;
+  const f=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/(len||1)));
+  if(Math.hypot(p.x-a.x-f*dx,p.y-a.y-f*dy)<37)return true;
+ }
+ return false;
 }
 
-function fire(x,y,target,damage,speed,color) {
-  shots.push({x,y,target,damage,speed,color});
+function deploy(x,y){
+ if(gameOver)return;
+ if(selectedTower){
+  const hit=towers.find(t=>dist(t,{x,y})<25);
+  if(hit){selectedTower=hit;buildMode=false;say(hit.type+" selected. Upgrade it above.");return}
+ }
+ if(towers.some(t=>dist(t,{x,y})<35)||nearRoad({x,y})||x<25||x>875||y<25||y>505){
+  say("Choose an empty spot beside the road.");return;
+ }
+ const data=types[selectedType];
+ if(gold<data.cost){say("Not enough gold for "+data.name+"!");return}
+ gold-=data.cost;
+ const t=makeTower(selectedType,x,y);
+ towers.push(t);selectedTower=t;buildMode=false;
+ say(data.name+" deployed! It will attack enemies automatically.");
+ updateUI();save();
 }
 
-function buildTower(x,y) {
-  if (coins<40) {
-    say("Not enough coins! Defeat enemies to earn more.");
-    return;
-  }
-  if (pointOnPath({x,y}) || distance({x,y},hero)<40 ||
-      towers.some(t=>distance(t,{x,y})<35)) {
-    say("Build on an empty area away from the road and hero.");
-    return;
-  }
-  if (x<25||x>W-25||y<25||y>H-25) return;
-  towers.push({x,y,cooldown:0,range:155,damage:19,level:1});
-  coins-=40;
-  buildMode=false;
-  $("buildBtn").textContent="🏹 Build Tower (40)";
-  say("Tower built! It will automatically attack enemies.");
-  updateUI();
-  saveProgress();
-}
-
-function moveHero(x,y) {
-  hero.x=Math.max(25,Math.min(W-25,x));
-  hero.y=Math.max(25,Math.min(H-25,y));
-  heroMoveMode=false;
-  say("Hero moved!");
-}
-
-function handleCanvasTap(ev) {
-  ev.preventDefault();
-  const rect=canvas.getBoundingClientRect();
-  const x=(ev.clientX-rect.left)*W/rect.width;
-  const y=(ev.clientY-rect.top)*H/rect.height;
-  if (gameOver) return;
-  if (buildMode) {
-    buildTower(x,y);
-  } else if (heroMoveMode) {
-    moveHero(x,y);
-  } else {
-    // Tap anywhere to reposition the hero.
-    moveHero(x,y);
-  }
-}
-canvas.addEventListener("pointerdown",handleCanvasTap);
-
-$("buildBtn").addEventListener("click",()=>{
-  if (gameOver) return;
-  buildMode=!buildMode;
-  heroMoveMode=false;
-  $("buildBtn").textContent=buildMode ? "✖ Cancel Building" : "🏹 Build Tower (40)";
-  say(buildMode ? "Tap an empty area to build a tower." : "Building cancelled.");
+canvas.addEventListener("pointerdown",e=>{
+ e.preventDefault();
+ const r=canvas.getBoundingClientRect();
+ const x=(e.clientX-r.left)*W/r.width;
+ const y=(e.clientY-r.top)*H/r.height;
+ const hit=towers.find(t=>dist(t,{x,y})<25);
+ if(hit){
+  selectedTower=hit;selectedType=hit.type;buildMode=false;buildCards();
+  say(hit.type+" selected. Press Upgrade Selected.");
+ }else{
+  selectedTower=null;buildMode=true;deploy(x,y);
+ }
 });
 
-$("heroBtn").addEventListener("click",()=>{
-  if (gameOver) return;
-  buildMode=false;
-  heroMoveMode=true;
-  $("buildBtn").textContent="🏹 Build Tower (40)";
-  say("Tap anywhere on the field to move your hero.");
-});
+$("upgrade").onclick=()=>{
+ if(!selectedTower){say("Tap a deployed guardian first.");return}
+ const cost=45*selectedTower.lv;
+ if(gold<cost){say("Upgrade needs "+cost+" gold.");return}
+ gold-=cost;selectedTower.lv++;
+ selectedTower.damage=Math.round(selectedTower.damage*1.42);
+ selectedTower.range+=12;
+ say(selectedTower.type+" upgraded to level "+selectedTower.lv+"!");
+ updateUI();save();
+};
 
-$("startBtn").addEventListener("click",startWave);
-
-$("restartBtn").addEventListener("click",()=>{
-  if (!confirm("Restart the run? Your saved level and coins will be reset.")) return;
-  level=1; wave=1; coins=100; lives=10;
-  enemies=[]; towers=[]; shots=[]; particles=[];
-  hero={x:75,y:390,hp:100,maxHp:100,cooldown:0};
-  running=false; gameOver=false; spawnLeft=0; spawnTimer=0;
-  waveWait=0; kills=0; buildMode=false; heroMoveMode=false;
-  saveProgress(); updateUI();
-  $("buildBtn").textContent="🏹 Build Tower (40)";
-  say("New run started. Press Start / Next Wave!");
-});
-
-function update(dt) {
-  if (messageTimer>0) messageTimer-=dt;
-
-  if (!running || gameOver) return;
-
-  if (spawnLeft>0) {
-    spawnTimer-=dt;
-    if (spawnTimer<=0) {
-      spawnEnemy();
-      spawnTimer=Math.max(0.48,1.05-level*0.025);
-    }
-  }
-
-  // Move enemies along the road.
-  for (const e of enemies) {
-    if (e.hp<=0) continue;
-    const target=path[e.segment];
-    if (!target) {
-      e.hp=0;
-      lives--;
-      say("An enemy reached the gate! You lost a life.");
-      if (lives<=0) {
-        lives=0;
-        gameOver=true;
-        running=false;
-        say("GAME OVER! Press Restart Run to try again.");
-      }
-      continue;
-    }
-
-    const dx=target.x-e.x, dy=target.y-e.y;
-    const d=Math.hypot(dx,dy);
-    const step=e.speed*dt;
-    if (d<=step+1) {
-      e.x=target.x; e.y=target.y;
-      e.segment++;
-    } else {
-      e.x+=(dx/d)*step;
-      e.y+=(dy/d)*step;
-    }
-  }
-
-  // Hero auto-attacks the nearest enemy.
-  hero.cooldown-=dt;
-  if (hero.cooldown<=0) {
-    const target=nearestEnemy(hero.x,hero.y,245);
-    if (target) {
-      fire(hero.x,hero.y-13,target,24+level*2,340,"#78f7ff");
-      hero.cooldown=0.48;
-    }
-  }
-
-  // Towers auto-attack.
-  for (const t of towers) {
-    t.cooldown-=dt;
-    if (t.cooldown<=0) {
-      const target=nearestEnemy(t.x,t.y,t.range);
-      if (target) {
-        fire(t.x,t.y,target,t.damage,285,"#ffd76a");
-        t.cooldown=0.85;
-      }
-    }
-  }
-
-  // Move projectiles and apply damage.
-  for (const s of shots) {
-    if (!s.target || s.target.hp<=0) {
-      s.dead=true;
-      continue;
-    }
-    const dx=s.target.x-s.x, dy=s.target.y-s.y;
-    const d=Math.hypot(dx,dy);
-    if (d<10) {
-      s.target.hp-=s.damage;
-      s.dead=true;
-      for(let i=0;i<3;i++) particles.push({
-        x:s.x,y:s.y,vx:(Math.random()-.5)*70,
-        vy:(Math.random()-.5)*70,life:.25,color:s.color
-      });
-    } else {
-      s.x+=(dx/d)*s.speed*dt;
-      s.y+=(dy/d)*s.speed*dt;
-    }
-  }
-  shots=shots.filter(s=>!s.dead);
-
-  // Reward defeated enemies.
-  for (const e of enemies) {
-    if (e.hp<=0 && !e.rewarded) {
-      e.rewarded=true;
-      if (e.segment<path.length) {
-        coins+=e.reward;
-        kills++;
-      }
-    }
-  }
-  enemies=enemies.filter(e=>e.hp>0);
-
-  for (const p of particles) {
-    p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt;
-  }
-  particles=particles.filter(p=>p.life>0);
-
-  // Finish a wave only after all enemies have spawned and been cleared.
-  if (spawnLeft<=0 && enemies.length===0) {
-    running=false;
-    if (wave<3) {
-      wave++;
-      coins+=25;
-      say("Wave cleared! +25 coins. Press Start / Next Wave.");
-    } else {
-      level++;
-      wave=1;
-      coins+=60;
-      say("LEVEL COMPLETE! Welcome to "+themes[(level-1)%themes.length].name+"! +60 coins.");
-    }
-    saveProgress();
-  }
-
-  updateUI();
+function startWave(){
+ if(gameOver){say("Start a new game to play again.");return}
+ if(running){say("Defeat the current wave first.");return}
+ running=true;spawnLeft=6+level*2+wave*2;spawnClock=.1;
+ say("Wave "+wave+" incoming! Guardians, attack!");
 }
 
-function drawBackground() {
-  const theme=themes[(level-1)%themes.length];
-  ctx.fillStyle=theme.bg;
-  ctx.fillRect(0,0,W,H);
+$("start").onclick=startWave;
 
-  // Background decorations.
-  for(let i=0;i<34;i++) {
-    const x=(i*137+37)%W, y=(i*83+22)%H;
-    ctx.globalAlpha=.25;
-    ctx.fillStyle=theme.accent;
-    ctx.beginPath(); ctx.arc(x,y,2+(i%4),0,Math.PI*2); ctx.fill();
-  }
-  ctx.globalAlpha=1;
-
-  // Landscape details.
-  for(let i=0;i<12;i++) {
-    const x=(i*89+25)%W, y=(i*71+45)%H;
-    if (pointOnPath({x,y})) continue;
-    ctx.fillStyle=theme.accent;
-    ctx.globalAlpha=.2;
-    ctx.beginPath();
-    ctx.arc(x,y,8+(i%3)*3,0,Math.PI*2);
-    ctx.fill();
-    ctx.globalAlpha=1;
-  }
-
-  // Road base.
-  ctx.lineCap="round"; ctx.lineJoin="round";
-  ctx.strokeStyle="#352f43"; ctx.lineWidth=62;
-  ctx.beginPath();
-  path.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-  ctx.stroke();
-
-  ctx.strokeStyle=theme.road; ctx.lineWidth=48;
-  ctx.beginPath();
-  path.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-  ctx.stroke();
-
-  ctx.strokeStyle="rgba(255,255,255,.20)";
-  ctx.lineWidth=2; ctx.setLineDash([12,12]);
-  ctx.beginPath();
-  path.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-  ctx.stroke(); ctx.setLineDash([]);
-
-  // Gate.
-  ctx.fillStyle="#e9e7ff";
-  ctx.fillRect(827,430,45,85);
-  ctx.fillStyle="#443b6b";
-  ctx.fillRect(836,440,27,65);
-  ctx.fillStyle="#ffdf70";
-  ctx.font="bold 14px Arial";
-  ctx.fillText("GATE",832,424);
-
-  ctx.fillStyle="rgba(255,255,255,.8)";
-  ctx.font="bold 17px Arial";
-  ctx.fillText(theme.name,15,27);
-  ctx.font="13px Arial";
-  ctx.fillText("Defend the gate!",15,47);
+function spawnEnemy(){
+ const boss=wave===5&&spawnLeft===1;
+ const hp=boss?360+level*80:42+level*13+wave*8;
+ enemies.push({
+  id:enemyId++,x:path[0].x,y:path[0].y,seg:1,
+  hp,maxHp:hp,speed:boss?25:40+level*1.8,
+  boss,radius:boss?21:13,slow:0
+ });
+ spawnLeft--;
 }
 
-function drawHero() {
-  const x=hero.x, y=hero.y;
-  // Shadow.
-  ctx.fillStyle="rgba(0,0,0,.3)";
-  ctx.beginPath(); ctx.ellipse(x,y+12,22,8,0,0,Math.PI*2); ctx.fill();
-
-  // Cape and body.
-  ctx.fillStyle="#eb4779";
-  ctx.beginPath();
-  ctx.moveTo(x-9,y-3); ctx.lineTo(x-21,y+13);
-  ctx.lineTo(x+3,y+10); ctx.closePath(); ctx.fill();
-
-  ctx.fillStyle="#49d6ff";
-  ctx.fillRect(x-10,y-2,20,22);
-
-  // Face.
-  ctx.fillStyle="#f7c79d";
-  ctx.beginPath(); ctx.arc(x,y-13,12,0,Math.PI*2); ctx.fill();
-
-  // Hair.
-  ctx.fillStyle="#34234e";
-  ctx.beginPath();
-  ctx.moveTo(x-12,y-14); ctx.lineTo(x-10,y-27);
-  ctx.lineTo(x-2,y-22); ctx.lineTo(x+5,y-28);
-  ctx.lineTo(x+12,y-17); ctx.lineTo(x+8,y-10);
-  ctx.closePath(); ctx.fill();
-
-  ctx.fillStyle="#29274d";
-  ctx.fillRect(x-6,y-14,3,3); ctx.fillRect(x+4,y-14,3,3);
-
-  // Energy aura.
-  ctx.strokeStyle="#8bf8ff"; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.arc(x,y,26,0,Math.PI*2); ctx.stroke();
-
-  // Health bar.
-  ctx.fillStyle="#422";
-  ctx.fillRect(x-20,y-38,40,5);
-  ctx.fillStyle="#5cff91";
-  ctx.fillRect(x-20,y-38,40*Math.max(0,hero.hp/hero.maxHp),5);
-  ctx.fillStyle="#fff";
-  ctx.font="bold 11px Arial";
-  ctx.fillText("HERO",x-15,y-43);
+function closestEnemy(t){
+ let best=null,score=-Infinity;
+ for(const e of enemies){
+  if(e.hp<=0)continue;
+  const d=dist(t,e);
+  if(d<=t.range){
+   const value=e.seg*1000-d;
+   if(value>score){score=value;best=e}
+  }
+ }
+ return best;
 }
 
-function drawEnemy(e) {
-  const x=e.x,y=e.y;
-  ctx.fillStyle="rgba(0,0,0,.3)";
-  ctx.beginPath(); ctx.ellipse(x,y+10,e.radius+3,6,0,0,Math.PI*2); ctx.fill();
-
-  ctx.fillStyle=e.boss?"#a64aff":"#ff526d";
-  ctx.beginPath(); ctx.arc(x,y,e.radius,0,Math.PI*2); ctx.fill();
-
-  ctx.fillStyle=e.boss?"#ffda6b":"#ffe9a3";
-  ctx.beginPath();
-  ctx.moveTo(x-e.radius+3,y-e.radius+1);
-  ctx.lineTo(x-e.radius-4,y-e.radius-9);
-  ctx.lineTo(x-2,y-e.radius-5);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(x+e.radius-3,y-e.radius+1);
-  ctx.lineTo(x+e.radius+4,y-e.radius-9);
-  ctx.lineTo(x+2,y-e.radius-5);
-  ctx.fill();
-
-  ctx.fillStyle="#2a1534";
-  ctx.fillRect(x-7,y-3,4,5); ctx.fillRect(x+3,y-3,4,5);
-
-  ctx.fillStyle="#301b30";
-  ctx.fillRect(x-17,y-e.radius-11,34,5);
-  ctx.fillStyle="#69ff90";
-  ctx.fillRect(x-17,y-e.radius-11,34*Math.max(0,e.hp/e.maxHp),5);
-
-  if(e.boss) {
-    ctx.fillStyle="#fff";
-    ctx.font="bold 10px Arial";
-    ctx.fillText("BOSS",x-13,y-e.radius-15);
-  }
+function shoot(t,e){
+ shots.push({x:t.x,y:t.y,target:e,damage:t.damage,
+  speed:t.type==="cannon"?230:390,color:types[t.type].color,
+  splash:t.type==="cannon"?52:0,kind:t.type});
 }
 
-function drawTower(t) {
-  ctx.fillStyle="rgba(0,0,0,.25)";
-  ctx.beginPath(); ctx.ellipse(t.x,t.y+9,22,9,0,0,Math.PI*2); ctx.fill();
-
-  ctx.fillStyle="#ffd76a";
-  ctx.beginPath(); ctx.arc(t.x,t.y,20,0,Math.PI*2); ctx.fill();
-
-  ctx.fillStyle="#5045b9";
-  ctx.fillRect(t.x-9,t.y-17,18,27);
-
-  ctx.fillStyle="#fff0b0";
-  ctx.beginPath(); ctx.arc(t.x,t.y-7,7,0,Math.PI*2); ctx.fill();
-
-  ctx.fillStyle="#292044";
-  ctx.fillRect(t.x-4,t.y-9,3,3); ctx.fillRect(t.x+3,t.y-9,3,3);
-
-  ctx.strokeStyle="rgba(255,215,106,.4)";
-  ctx.lineWidth=2;
-  ctx.beginPath(); ctx.arc(t.x,t.y,24,0,Math.PI*2); ctx.stroke();
+function useItem(item){
+ if(gameOver)return;
+ if(item==="fire"){
+  if(gold<50){say("Fire Bomb costs 50 gold.");return}
+  gold-=50;
+  for(const e of enemies)e.hp-=105+level*12;
+  say("🔥 FIRE BOMB! All enemies hit!");
+ }else if(item==="ice"){
+  if(gold<40){say("Ice Blast costs 40 gold.");return}
+  gold-=40;
+  for(const e of enemies)e.slow=2.5;
+  say("❄️ ICE BLAST! Enemies are frozen briefly!");
+ }else{
+  if(gold<60){say("Healing Potion costs 60 gold.");return}
+  if(lives>=15){say("Your lives are already full.");return}
+  gold-=60;lives=Math.min(15,lives+5);
+  say("💚 Healing potion restored your lives!");
+ }
+ updateUI();save();
 }
 
-function draw() {
-  drawBackground();
+$("fire").onclick=()=>useItem("fire");
+$("ice").onclick=()=>useItem("ice");
+$("heal").onclick=()=>useItem("heal");
 
-  for(const t of towers) drawTower(t);
-  for(const e of enemies) drawEnemy(e);
-  drawHero();
+$("save").onclick=()=>{save();say("Game progress saved on this device.")};
 
-  for(const s of shots) {
-    ctx.fillStyle=s.color;
-    ctx.beginPath(); ctx.arc(s.x,s.y,5,0,Math.PI*2); ctx.fill();
-    ctx.globalAlpha=.3;
-    ctx.beginPath(); ctx.arc(s.x,s.y,10,0,Math.PI*2); ctx.fill();
-    ctx.globalAlpha=1;
+$("reset").onclick=()=>{
+ if(!confirm("Start a new game? Saved progress will be erased."))return;
+ level=1;wave=1;gold=300;lives=15;towers=[];enemies=[];shots=[];particles=[];
+ running=false;gameOver=false;spawnLeft=0;selectedTower=null;
+ selectedType="archer";buildMode=true;
+ try{localStorage.removeItem(KEY)}catch(e){}
+ buildCards();updateUI();say("New adventure! Deploy guardians and start the wave.");
+};
+
+function update(dt){
+ if(!running||gameOver)return;
+ if(spawnLeft>0){
+  spawnClock-=dt;
+  if(spawnClock<=0){spawnEnemy();spawnClock=Math.max(.48,.9-level*.02)}
+ }
+
+ for(const e of enemies){
+  if(e.hp<=0)continue;
+  if(e.slow>0)e.slow-=dt;
+  const target=path[e.seg];
+  if(!target){
+   e.hp=0;lives--;
+   say("An enemy breached the gate! Life -1.");
+   if(lives<=0){lives=0;gameOver=true;running=false;say("DEFEAT! Press New Game to restart.")}
+   continue;
   }
+  const dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy);
+  const speed=e.speed*(e.slow>0?.25:1);
+  const step=speed*dt;
+  if(d<=step+1){e.x=target.x;e.y=target.y;e.seg++}
+  else{e.x+=dx/d*step;e.y+=dy/d*step}
+ }
 
-  for(const p of particles) {
-    ctx.globalAlpha=Math.max(0,p.life/.25);
-    ctx.fillStyle=p.color;
-    ctx.beginPath(); ctx.arc(p.x,p.y,3,0,Math.PI*2); ctx.fill();
+ for(const t of towers){
+  t.cooldown-=dt;
+  if(t.cooldown<=0){
+   const e=closestEnemy(t);
+   if(e){shoot(t,e);t.cooldown=t.rate}
   }
-  ctx.globalAlpha=1;
+ }
 
-  if(buildMode) {
-    ctx.fillStyle="rgba(255,215,106,.95)";
-    ctx.font="bold 17px Arial";
-    ctx.fillText("BUILD MODE: tap an empty area",W/2-140,30);
-  } else if(heroMoveMode) {
-    ctx.fillStyle="#9ffaff";
-    ctx.font="bold 17px Arial";
-    ctx.fillText("MOVE HERO: tap your destination",W/2-140,30);
-  }
+ for(const s of shots){
+  if(!s.target||s.target.hp<=0){s.dead=true;continue}
+  const dx=s.target.x-s.x,dy=s.target.y-s.y,d=Math.hypot(dx,dy);
+  if(d<s.speed*dt+7){
+   if(s.splash){
+    for(const e of enemies)if(e.hp>0&&dist(e,s.target)<s.splash)e.hp-=s.damage;
+   }else s.target.hp-=s.damage;
+   s.dead=true;
+   for(let i=0;i<4;i++)particles.push({
+    x:s.target.x,y:s.target.y,vx:(Math.random()-.5)*100,
+    vy:(Math.random()-.5)*100,life:.3,color:s.color
+   });
+  }else{s.x+=dx/d*s.speed*dt;s.y+=dy/d*s.speed*dt}
+ }
+ shots=shots.filter(s=>!s.dead);
 
-  if(!running && !gameOver) {
-    ctx.fillStyle="rgba(10,10,25,.55)";
-    ctx.fillRect(260,260,380,65);
-    ctx.fillStyle="#fff";
-    ctx.textAlign="center";
-    ctx.font="bold 22px Arial";
-    ctx.fillText("LEVEL "+level+"  •  WAVE "+wave,450,286);
-    ctx.font="15px Arial";
-    ctx.fillText("Press Start / Next Wave",450,308);
-    ctx.textAlign="left";
+ for(const e of enemies){
+  if(e.hp<=0&&!e.rewarded){
+   e.rewarded=true;
+   if(e.seg<path.length){gold+=e.boss?45:9}
   }
+ }
+ enemies=enemies.filter(e=>e.hp>0);
 
-  if(gameOver) {
-    ctx.fillStyle="rgba(5,5,20,.78)";
-    ctx.fillRect(0,0,W,H);
-    ctx.fillStyle="#ff6b91";
-    ctx.textAlign="center";
-    ctx.font="bold 44px Arial";
-    ctx.fillText("GAME OVER",W/2,H/2-10);
-    ctx.fillStyle="#fff";
-    ctx.font="bold 19px Arial";
-    ctx.fillText("Press Restart Run to play again",W/2,H/2+28);
-    ctx.textAlign="left";
-  }
+ for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt}
+ particles=particles.filter(p=>p.life>0);
+
+ if(spawnLeft===0&&enemies.length===0){
+  running=false;gold+=25;
+  if(wave<5){wave++;say("Wave cleared! +25 gold. Prepare for the next wave.")}
+  else{wave=1;level++;say("LEVEL UP! Welcome to "+themes[(level-1)%themes.length].name+"!")}
+  save();
+ }
+ updateUI();
 }
 
-function loop(timestamp) {
-  const dt=lastTime ? Math.min((timestamp-lastTime)/1000,.04) : 0;
-  lastTime=timestamp;
-  update(dt);
-  draw();
-  requestAnimationFrame(loop);
+function drawBg(){
+ const th=themes[(level-1)%themes.length];
+ ctx.fillStyle=th.bg;ctx.fillRect(0,0,W,H);
+ // Distant mountains
+ for(let i=0;i<10;i++){
+  const x=i*105-20;
+  ctx.fillStyle=i%2?"#274d60":"#203d53";
+  ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+90,150+(i%3)*22);ctx.lineTo(x+190,0);ctx.fill();
+ }
+ // Blossoms / magical lights
+ for(let i=0;i<45;i++){
+  const x=(i*197+31)%W,y=(i*89+17)%H;
+  ctx.globalAlpha=.24;ctx.fillStyle=th.glow;
+  ctx.beginPath();ctx.arc(x,y,2+i%4,0,Math.PI*2);ctx.fill();
+ }
+ ctx.globalAlpha=1;
+
+ ctx.lineCap="round";ctx.lineJoin="round";
+ ctx.strokeStyle="#10182b";ctx.lineWidth=65;
+ ctx.beginPath();path.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();
+ ctx.strokeStyle=th.road;ctx.lineWidth=49;
+ ctx.beginPath();path.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();
+ ctx.strokeStyle="#fff7d2";ctx.globalAlpha=.25;ctx.lineWidth=2;ctx.setLineDash([11,12]);
+ ctx.beginPath();path.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();
+ ctx.setLineDash([]);ctx.globalAlpha=1;
+
+ // Crystal gate
+ ctx.fillStyle="#11182f";ctx.fillRect(817,414,65,78);
+ ctx.fillStyle="#4355a5";ctx.fillRect(829,425,42,60);
+ ctx.fillStyle="#68efff";
+ ctx.beginPath();ctx.moveTo(850,430);ctx.lineTo(864,449);ctx.lineTo(850,469);ctx.lineTo(836,449);ctx.closePath();ctx.fill();
+ ctx.fillStyle="#fff";ctx.font="bold 13px Arial";ctx.fillText("GATE",831,407);
+ ctx.fillStyle=th.glow;ctx.font="bold 16px Arial";ctx.fillText(th.name,15,26);
+ ctx.fillStyle="#d9e9ff";ctx.font="12px Arial";ctx.fillText("GUARDIAN BATTLEFIELD",15,44);
 }
 
-loadProgress();
+function drawTower(t){
+ const d=types[t.type],x=t.x,y=t.y;
+ if(t===selectedTower){
+  ctx.strokeStyle="#8ef6ff";ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(x,y,t.range,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle="#fff";ctx.beginPath();ctx.arc(x,y,25,0,Math.PI*2);ctx.stroke();
+ }
+ ctx.fillStyle="#0a1126aa";ctx.beginPath();ctx.ellipse(x,y+15,25,9,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#132442";ctx.beginPath();ctx.arc(x,y,24,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle=d.color;ctx.lineWidth=3;ctx.stroke();
+ // Distinct unit silhouettes
+ if(t.type==="tank"){
+  ctx.fillStyle="#6b9caa";ctx.fillRect(x-19,y-12,38,25);
+  ctx.fillStyle="#d4ecdb";ctx.fillRect(x-8,y-18,17,10);
+  ctx.fillStyle="#24364d";ctx.fillRect(x+4,y-17,19,5);
+  ctx.fillStyle="#20263a";ctx.fillRect(x-19,y+12,38,5);
+ }else if(t.type==="cannon"){
+  ctx.fillStyle="#b5bacd";ctx.fillRect(x-16,y-13,32,24);
+  ctx.fillStyle="#303a5a";ctx.fillRect(x-2,y-22,28,9);
+  ctx.fillStyle="#ffd0a0";ctx.beginPath();ctx.arc(x,y-8,7,0,Math.PI*2);ctx.fill();
+ }else if(t.type==="sword"){
+  ctx.fillStyle="#e9d9ff";ctx.fillRect(x-12,y-12,24,25);
+  ctx.fillStyle="#5d5fe9";ctx.fillRect(x-9,y-23,18,12);
+  ctx.strokeStyle="#fff";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x+8,y-9);ctx.lineTo(x+24,y-25);ctx.stroke();
+ }else{
+  ctx.fillStyle=d.color;ctx.beginPath();ctx.arc(x,y-5,15,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#f5f7ff";ctx.beginPath();ctx.arc(x,y-10,7,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#172441";ctx.fillRect(x-8,y-12,4,4);ctx.fillRect(x+4,y-12,4,4);
+  if(t.type==="mage"){
+   ctx.strokeStyle="#fff";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x+15,y-20);ctx.lineTo(x+23,y-35);ctx.stroke();
+   ctx.fillStyle="#e9aaff";ctx.beginPath();ctx.arc(x+23,y-36,5,0,Math.PI*2);ctx.fill();
+  }
+ }
+ ctx.fillStyle="#fff";ctx.font="bold 10px Arial";ctx.textAlign="center";
+ ctx.fillText("Lv."+t.lv,x,y+34);ctx.textAlign="left";
+}
+
+function drawEnemy(e){
+ const x=e.x,y=e.y,r=e.radius;
+ ctx.fillStyle="#0b0d20aa";ctx.beginPath();ctx.ellipse(x,y+10,r+5,6,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=e.boss?"#b02b52":"#9c416d";
+ ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=e.boss?"#ff9d48":"#d8b4ff";
+ ctx.beginPath();ctx.moveTo(x-r+3,y-r+2);ctx.lineTo(x-r-4,y-r-11);ctx.lineTo(x-2,y-r+1);ctx.fill();
+ ctx.beginPath();ctx.moveTo(x+r-3,y-r+2);ctx.lineTo(x+r+4,y-r-11);ctx.lineTo(x+2,y-r+1);ctx.fill();
+ ctx.fillStyle="#fff36c";ctx.fillRect(x-7,y-3,4,4);ctx.fillRect(x+3,y-3,4,4);
+ ctx.fillStyle="#281a35";ctx.fillRect(x-18,y-r-11,36,5);
+ ctx.fillStyle="#ff526f";ctx.fillRect(x-18,y-r-11,36*Math.max(0,e.hp/e.maxHp),5);
+ if(e.boss){ctx.fillStyle="#fff";ctx.font="bold 10px Arial";ctx.fillText("BOSS",x-14,y-r-15)}
+ if(e.slow>0){ctx.strokeStyle="#8deaff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+5,0,Math.PI*2);ctx.stroke()}
+}
+
+function drawShots(){
+ for(const s of shots){
+  ctx.shadowBlur=12;ctx.shadowColor=s.color;ctx.fillStyle=s.color;
+  ctx.beginPath();ctx.arc(s.x,s.y,s.kind==="cannon"?7:4,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+ }
+ for(const p of particles){
+  ctx.globalAlpha=Math.max(0,p.life/.3);ctx.fillStyle=p.color;
+  ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill();
+ }
+ ctx.globalAlpha=1;
+}
+
+function draw(){
+ drawBg();
+ for(const t of towers)drawTower(t);
+ for(const e of enemies)drawEnemy(e);
+ drawShots();
+
+ if(!running&&!gameOver){
+  ctx.fillStyle="#0b1424dd";ctx.fillRect(265,220,370,76);
+  ctx.strokeStyle="#6ce8ff";ctx.strokeRect(265,220,370,76);
+  ctx.fillStyle="#fff";ctx.textAlign="center";ctx.font="bold 22px Arial";
+  ctx.fillText("LEVEL "+level+" · WAVE "+wave,450,249);
+  ctx.font="14px Arial";ctx.fillText("Deploy guardians, then start the wave",450,274);
+  ctx.textAlign="left";
+ }
+ if(gameOver){
+  ctx.fillStyle="#050919dd";ctx.fillRect(0,0,W,H);
+  ctx.textAlign="center";ctx.fillStyle="#ff708f";
+  ctx.font="bold 42px Arial";ctx.fillText("GATE DESTROYED",450,245);
+  ctx.fillStyle="#fff";ctx.font="17px Arial";
+  ctx.fillText("Press NEW GAME to fight again",450,280);ctx.textAlign="left";
+ }
+}
+
+function loop(now){
+ const dt=last?Math.min((now-last)/1000,.04):0;last=now;
+ update(dt);draw();requestAnimationFrame(loop);
+}
+
+load();
+buildCards();
 updateUI();
-say("Welcome! Press Start / Next Wave to begin.");
+say("Select a guardian, deploy it beside the road, and start the wave.");
 requestAnimationFrame(loop);
 })();
 </script>
